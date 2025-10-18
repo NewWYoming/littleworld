@@ -1,0 +1,134 @@
+import { toInteger } from "lodash-es";
+import { worldstate, worldhistory } from "../interfaces";
+import { gettime } from "../utils";
+import { getWorldState, saveWorldState } from "../store";
+import { createWorld, processDay } from "../core/worldManager";
+
+export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    const seeds = [cmdArgs.getArgN(2), cmdArgs.getArgN(3), cmdArgs.getArgN(4)];
+    if (seeds.some(s => !s)) {
+        seal.replyToSender(ctx, msg, '创建世界需要提供三个种子词。');
+        return console.error('创建世界需要提供三个种子词。');
+    } else if (seeds.some(s => s.length > 20)) {
+        seal.replyToSender(ctx, msg, '种子词长度过长，无法创建世界。');
+        return console.error('种子词长度过长，无法创建世界。');
+    }
+
+    seal.replyToSender(ctx, msg, '正在基于种子生成世界，请稍候...');
+    const worldSetting = await createWorld(msg, seeds);
+    seal.replyToSender(ctx, msg, `世界【${worldSetting.world_name}】已成功创建！\n使用 .world status 查看详情。`);
+}
+
+export async function handleToday(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    const currentState = getWorldState(msg);
+    if (!currentState) {
+        seal.replyToSender(ctx, msg, '当前没有世界。请使用 .world create 创建一个。');
+        return;
+    }
+
+    const timenow = gettime(msg.time);
+    const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
+    if (currentState.last_update_date === today) {
+        seal.replyToSender(ctx, msg, '今日小世界已演化，请明天再来。');
+        return;
+    }
+
+    let worldday = toInteger(currentState.day);
+    seal.replyToSender(ctx, msg, `第 ${worldday} 天结束，世界正在根据昨日的种子变更，演化至第 ${worldday + 1} 天...`);
+
+    const {nextState, newEvent} = await processDay(msg, currentState);
+    seal.replyToSender(ctx, msg, `【第 ${nextState.day} 天】\n世界的历史变动：\n${newEvent.event_name}\n${newEvent.core_event}`);
+}
+
+export async function handleSeed(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    const currentState = getWorldState(msg);
+    if (!currentState) {
+        seal.replyToSender(ctx, msg, '当前没有世界。');
+        return;
+    }
+
+    const seedOp = cmdArgs.getArgN(2);
+    const seedWord = cmdArgs.getArgN(3);
+
+    if ((seedOp !== 'add' && seedOp !== 'remove') || !seedWord) {
+        seal.replyToSender(ctx, msg, '指令格式错误。请使用 .world seed <add/remove> <种子词>');
+        return;
+    }
+
+    const maxSeeds = seal.ext.getIntConfig(ext, "maxSeedCount");
+    if (seedOp === 'add' && currentState.seeds.length >= maxSeeds) {
+            seal.replyToSender(ctx, msg, `种子数量已达上限（${maxSeeds}个），无法添加。`);
+            return;
+    } else if (seedWord.length > 5) {
+        seal.replyToSender(ctx, msg, '种子词长度过长，无法提交变更。');
+        return;
+    } else if (seedOp === 'add' && currentState.seeds.includes(seedWord)) {
+      seal.replyToSender(ctx, msg, '该种子词已存在于当前世界中，无法添加。');
+      return;
+    } else if (seedOp === 'remove' && !currentState.seeds.includes(seedWord)) {
+      seal.replyToSender(ctx, msg, '该种子词不存在于当前世界中，无法移除。');
+      return;
+    }
+
+    currentState.pending_seed_change = {
+        operation: seedOp,
+        seed: seedWord
+    };
+    saveWorldState(msg, currentState);
+
+    seal.replyToSender(ctx, msg, `种子变更已提交/覆盖：【${seedOp === 'add' ? '添加' : '移除'}】“${seedWord}”。此变更将在明天的世界演化中生效。`);
+}
+
+export async function handleStatus(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    const state = getWorldState(msg);
+    if (!state) {
+        seal.replyToSender(ctx, msg, '当前没有世界。');
+        return;
+    }
+    const setting = state.world_setting;
+    const inhabitants = setting.inhabitants.map(i => `${i.name} (${i.description})`).join('; ');
+    const replyText = `
+世界名称: ${setting.world_name} (第 ${state.day} 天)
+核心主题: ${setting.core_theme}
+地理: ${setting.geography}
+居民: ${inhabitants}
+矛盾: ${setting.conflicts}
+科技: ${setting.tech}
+当前种子: [${state.seeds.join(', ')}]
+`.trim();
+    seal.replyToSender(ctx, msg, replyText);
+}
+
+export async function handleHistory(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    const page = parseInt(cmdArgs.getArgN(2), 10) || 1;
+    const pageSize = seal.ext.getIntConfig(ext, "historyPageSize");
+    const state = getWorldState(msg);
+    if (!state || state.history.length === 0) {
+            seal.replyToSender(ctx, msg, '这个世界还没有历史。');
+            return;
+    }
+
+    const totalPages = Math.ceil(state.history.length / pageSize);
+    if (page > totalPages || page < 1) {
+            seal.replyToSender(ctx, msg, `页码超出范围，总计 ${totalPages} 页。`);
+            return;
+    }
+
+    const startIndex = state.history.length - (page * pageSize);
+    const endIndex = startIndex + pageSize;
+    const paginatedHistory = state.history.slice(Math.max(0, startIndex), endIndex).reverse();
+
+    const historyText = paginatedHistory.map((h: worldhistory) => `${h.event_date} - ${h.event_name}: ${h.core_event}`).join('\n');
+    seal.replyToSender(ctx, msg, `历史记录 (第 ${page}/${totalPages} 页):\n${historyText}`);
+}
+
+export async function handleReset(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    saveWorldState(msg, null);
+    seal.replyToSender(ctx, msg, '当前世界已被重置。');
+}
+
+let ext: seal.ExtInfo;
+
+export function initializeHandlers(extension: seal.ExtInfo) {
+    ext = extension;
+}
