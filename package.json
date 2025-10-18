@@ -1,11 +1,11 @@
 {
-  "name": "a-long-story",
-  "version": "1.0.0",
-  "description": "once upon a time, ...",
+  "name": "little-world",
+  "version": "0.2.3",
+  "description": "一个AI驱动的世界演化插件.",
   "main": "build/index.js",
   "typings": "build/index.d.ts",
-  "repository": "https://github.com/sealdice/seal-swordworld",
-  "license": "Apache-2.0",
+  "repository": "",
+  "license": "MIT",
   "keywords": [],
   "scripts": {
     "build": "cross-env NODE_ENV=production node tools/build.js",

@@ -1,10 +1,8 @@
 // ==UserScript==
-// @name         模板项目
-// @author       作者名
-// @version      1.0.0
-// @description  这是海豹的js扩展模板项目，请自行修改信息
-// @timestamp    1674477074
-// 2023/1/23
+// @name         微型世界模拟器
+// @author       NewWYoming
+// @version      0.2.3
+// @description  一个AI驱动的世界演化插件.
 // @license      MIT
-// @homepageURL  https://github.com/sealdice/sealdice-js-template
+// @homepageURL  //先留空
 // ==/UserScript==
