@@ -1,62 +1,42 @@
-# 海豹js扩展模板
-
+# little-world
 
 ### 介绍
 
-一个简单易用的项目模板。
+一个由 AI 驱动的微型世界模拟海豹插件。
 
-使用esbuild编译代码，并将多个源码文件打包成一个。
+### 下载
 
+您可以从本项目的 [Releases 页面](https://github.com/NewWYoming/littleworld/releases) 下载已编译好的插件成品（`little-world.js`）。
 
-### 如何使用
+### 核心功能
 
-clone或下载项目，随后:
+- **世界设定创建**: 基于用户提供的种子词，动态生成独特的世界背景设定。
+- **每日事件推演**: 模拟并记录世界中每一天发生的事件，形成完整的历史时间线。
+- **状态管理**: 支持世界的状态保存与读取，方便随时中断和恢复模拟。
+- **种子词管理**: 允许动态地添加、删除或修改种子词，以影响世界的发展走向。
 
-```
+### 使用方法
+
+1.  将下载的 `little-world.js` 插件文件通过海豹核心webui加载。
+2.  重载插件。
+3.  根据插件指令使用各项功能，开启你的微型世界模拟器。
+
+### 指令
+
+- `.world create <种子1> <种子2> <种子3>` - 创建世界（已有世界情况下会覆盖）
+- `.world today` - 每日推进一天，触发新的世界事件，更新世界设定，清除种子变更
+- `.world seed <add/remove <种子>>` - 每日提交种子变更，提交多次会覆盖之前的变更
+- `.world status` - 查看世界设定
+- `.world history [页码]` - 查看历史书页
+- `.world reset` - 删除世界
+
+### 开发
+
+本项目基于海豹JS扩展模板开发。如需进行二次开发：
+
+```bash
+# 安装依赖
 npm install
+
+# 编译项目
 npm run build
-```
-
-好的，现在你的项目被编译成功了，就在dist目录。
-
-默认的名字是`sealdce-js-ext.js`，其逻辑写在src/index.ts
-
-
-### 开发指南
-
-看这里，这边有大量的例子，以及海豹用户写的插件：
-
-https://github.com/sealdice/javascript
-
-由于无法动态调试，建议将纯逻辑部分独立编写，随后你就可以在调试编译后，用nodejs去验证你的想法:
-
-```
-npm run build-dev
-node ./dev/sealdice-js-ext.js
-```
-
-当然，不止是node，任何其他js环境都行，浏览器里也行。
-
-
-### 填写个人信息
-
-当插件开发完成后(或者开始开发时)，你需要修改几处地方：
-
-* header.txt 这个文件是你插件的描述信息
-
-* tools/build-config.js 最开头一行"var filename = 'sealdce-js-ext.js';"，改成你中意的名字，注意不要与现有的重名
-
-
-### 编译和发布
-
-```
-npm run build
-```
-
-从dist目录找出你的编译结果，将其装入海豹测试并分享即可！
-
-当然，你也可以把你的劳动成果提交到这里：
-
-https://github.com/sealdice/javascript/tree/main/scripts
-
-这样用户就可以直接在海豹的插件面板进行安装了。
