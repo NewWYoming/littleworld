@@ -1,6 +1,6 @@
 {
-  "name": "little-world-0.2.3-restruct",
-  "version": "0.2.3-restruct",
+  "name": "little-world-0.3.0",
+  "version": "0.3.0",
   "description": "一个AI驱动的世界演化插件.",
   "main": "build/index.js",
   "typings": "build/index.d.ts",
