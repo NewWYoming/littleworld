@@ -6,8 +6,7 @@ import { createWorld, processDay } from "../core/worldManager";
 
 export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
     const seeds = [cmdArgs.getArgN(2), cmdArgs.getArgN(3), cmdArgs.getArgN(4)];
-    const createtimerdata = getTimer(msg, 'create');
-    const createtimer: Timer | null = createtimerdata ? JSON.parse(createtimerdata) : null;
+    const createtimer: Timer | null = getTimer(msg, 'create');
     const timenow = gettime(msg.time);
     const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
     if (createtimer && createtimer.Date === today && toInteger(createtimer.Times) >= 3) {
@@ -138,8 +137,7 @@ export async function handleHistory(ctx: seal.MsgContext, msg: seal.Message, cmd
 }
 
 export async function handleReset(ctx: seal.MsgContext, msg: seal.Message) {
-    const resettimerdata = getTimer(msg, 'reset');
-    const resettimer: Timer | null = resettimerdata ? JSON.parse(resettimerdata) : null;
+    const resettimer: Timer | null = getTimer(msg, 'reset');
     const timenow = gettime(msg.time);
     const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
     if (resettimer && resettimer.Date === today && toInteger(resettimer.Times) >= 1) {

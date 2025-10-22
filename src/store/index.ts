@@ -15,7 +15,7 @@ function getTimerKey(msg: seal.Message, command: string): string {
     return `little_world_timer_${msg.sender.userId}_${command}`;
 }
 
-export function getTimer(msg: seal.Message, command: string): string | null {
+export function getTimer(msg: seal.Message, command: string): Timer | null {
     const key = getTimerKey(msg, command);
     const data = ext.storageGet(key);
     return data ? JSON.parse(data) : null;
