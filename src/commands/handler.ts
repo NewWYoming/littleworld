@@ -1,11 +1,20 @@
 import { toInteger } from "lodash-es";
-import { worldstate, worldhistory } from "../interfaces";
+import { worldstate, worldhistory, Timer } from "../interfaces";
 import { gettime } from "../utils";
-import { getWorldState, saveWorldState } from "../store";
+import { getTimer, getWorldState, saveTimer, saveWorldState } from "../store";
 import { createWorld, processDay } from "../core/worldManager";
 
 export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
     const seeds = [cmdArgs.getArgN(2), cmdArgs.getArgN(3), cmdArgs.getArgN(4)];
+    const createtimerdata = getTimer(msg, 'create');
+    const createtimer: Timer | null = createtimerdata ? JSON.parse(createtimerdata) : null;
+    const timenow = gettime(msg.time);
+    const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
+    if (createtimer && createtimer.Date === today && toInteger(createtimer.Times) >= 3) {
+        seal.replyToSender(ctx, msg, '今日创建小世界次数过多，请明天再试。');
+        return;
+    }
+
     if (seeds.some(s => !s)) {
         seal.replyToSender(ctx, msg, '创建世界需要提供三个种子词。');
         return console.error('创建世界需要提供三个种子词。');
@@ -17,9 +26,11 @@ export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdA
     seal.replyToSender(ctx, msg, '正在基于种子生成世界，请稍候...');
     const worldSetting = await createWorld(msg, seeds);
     seal.replyToSender(ctx, msg, `世界【${worldSetting.world_name}】已成功创建！\n使用 .world status 查看详情。`);
+    saveTimer(msg, 'create', (createtimer ? (toInteger(createtimer.Times) + 1).toString() : '1'));
+    saveTimer(msg, 'reset', '0');
 }
 
-export async function handleToday(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+export async function handleToday(ctx: seal.MsgContext, msg: seal.Message) {
     const currentState = getWorldState(msg);
     if (!currentState) {
         seal.replyToSender(ctx, msg, '当前没有世界。请使用 .world create 创建一个。');
@@ -38,6 +49,7 @@ export async function handleToday(ctx: seal.MsgContext, msg: seal.Message, cmdAr
 
     const {nextState, newEvent} = await processDay(msg, currentState);
     seal.replyToSender(ctx, msg, `【第 ${nextState.day} 天】\n世界的历史变动：\n${newEvent.event_name}\n${newEvent.core_event}`);
+    saveTimer(msg, 'reset', '0');
 }
 
 export async function handleSeed(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
@@ -77,9 +89,10 @@ export async function handleSeed(ctx: seal.MsgContext, msg: seal.Message, cmdArg
     saveWorldState(msg, currentState);
 
     seal.replyToSender(ctx, msg, `种子变更已提交/覆盖：【${seedOp === 'add' ? '添加' : '移除'}】“${seedWord}”。此变更将在明天的世界演化中生效。`);
+    saveTimer(msg, 'reset', '0');
 }
 
-export async function handleStatus(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+export async function handleStatus(ctx: seal.MsgContext, msg: seal.Message) {
     const state = getWorldState(msg);
     if (!state) {
         seal.replyToSender(ctx, msg, '当前没有世界。');
@@ -97,6 +110,7 @@ export async function handleStatus(ctx: seal.MsgContext, msg: seal.Message, cmdA
 当前种子: [${state.seeds.join(', ')}]
 `.trim();
     seal.replyToSender(ctx, msg, replyText);
+    saveTimer(msg, 'reset', '0');
 }
 
 export async function handleHistory(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
@@ -120,11 +134,22 @@ export async function handleHistory(ctx: seal.MsgContext, msg: seal.Message, cmd
 
     const historyText = paginatedHistory.map((h: worldhistory) => `${h.event_date} - ${h.event_name}: ${h.core_event}`).join('\n');
     seal.replyToSender(ctx, msg, `历史记录 (第 ${page}/${totalPages} 页):\n${historyText}`);
+    saveTimer(msg, 'reset', '0');
 }
 
-export async function handleReset(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
-    saveWorldState(msg, null);
-    seal.replyToSender(ctx, msg, '当前世界已被重置。');
+export async function handleReset(ctx: seal.MsgContext, msg: seal.Message) {
+    const resettimerdata = getTimer(msg, 'reset');
+    const resettimer: Timer | null = resettimerdata ? JSON.parse(resettimerdata) : null;
+    const timenow = gettime(msg.time);
+    const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
+    if (!resettimer && resettimer.Date === today && toInteger(resettimer.Times) >= 1) {
+      saveWorldState(msg, null);
+      seal.replyToSender(ctx, msg, '二次确认成功，当前世界已被重置。');
+      saveTimer(msg, 'reset', '0');
+    } else {
+      seal.replyToSender(ctx, msg, '二次确认：请确认是否删除当前世界的所有数据。\n如果确认，请使用 .world reset 再次执行。');
+      saveTimer(msg, 'reset', '1');
+    }
 }
 
 let ext: seal.ExtInfo;

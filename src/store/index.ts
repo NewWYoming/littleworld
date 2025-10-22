@@ -1,4 +1,5 @@
-import { worldstate } from "../interfaces";
+import { worldstate, Timer } from "../interfaces";
+import { gettime } from "../utils";
 
 let ext: seal.ExtInfo;
 
@@ -8,6 +9,26 @@ export function initializeStore(extension: seal.ExtInfo) {
 
 function getStateKey(msg: seal.Message): string {
     return `little_world_data_${msg.sender.userId}`;
+}
+
+function getTimerKey(msg: seal.Message, command: string): string {
+    return `little_world_timer_${msg.sender.userId}_${command}`;
+}
+
+export function getTimer(msg: seal.Message, command: string): string | null {
+    const key = getTimerKey(msg, command);
+    const data = ext.storageGet(key);
+    return data ? JSON.parse(data) : null;
+}
+
+export function saveTimer(msg: seal.Message, command: string, times: string) {
+    const key = getTimerKey(msg, command);
+    const date = gettime(msg.time);
+    const timer: Timer = {
+        Date: `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`,
+        Times: times
+    };
+    ext.storageSet(key, JSON.stringify(timer));
 }
 
 export function getWorldState(msg: seal.Message): worldstate | null {

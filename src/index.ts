@@ -8,7 +8,7 @@ function main() {
 	// 1. 扩展初始化
 	let ext = seal.ext.find('little-world');
 	if (!ext) {
-		ext = seal.ext.new('little-world', 'NewWYoming', '0.3.0');
+		ext = seal.ext.new('little-world', 'NewWYoming', '0.3.1');
 		seal.ext.register(ext);
 	}
 

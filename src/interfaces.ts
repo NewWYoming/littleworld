@@ -63,3 +63,8 @@ export interface AIConfig {
     temperature: number;
     TOPP: number;
 }
+
+export interface Timer {
+  Date: string;
+  Times: string;
+}
