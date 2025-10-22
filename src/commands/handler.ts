@@ -142,7 +142,7 @@ export async function handleReset(ctx: seal.MsgContext, msg: seal.Message) {
     const resettimer: Timer | null = resettimerdata ? JSON.parse(resettimerdata) : null;
     const timenow = gettime(msg.time);
     const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
-    if (!resettimer && resettimer.Date === today && toInteger(resettimer.Times) >= 1) {
+    if (resettimer && resettimer.Date === today && toInteger(resettimer.Times) >= 1) {
       saveWorldState(msg, null);
       seal.replyToSender(ctx, msg, '二次确认成功，当前世界已被重置。');
       saveTimer(msg, 'reset', '0');
