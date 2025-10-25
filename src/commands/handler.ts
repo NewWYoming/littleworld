@@ -43,8 +43,18 @@ export async function handleToday(ctx: seal.MsgContext, msg: seal.Message) {
         return;
     }
 
+    const seedChange = currentState.pending_seed_change;
+    let seedChangeDesc = "昨日无种子变更";
+    if (seedChange.operation === 'add') {
+        currentState.seeds.push(seedChange.seed);
+        seedChangeDesc = `正在根据昨日添加的种子“${seedChange.seed}”`;
+    } else if (seedChange.operation === 'remove') {
+        currentState.seeds = currentState.seeds.filter(s => s !== seedChange.seed);
+        seedChangeDesc = `正在根据昨日移除的种子“${seedChange.seed}”`;
+    }
+
     let worldday = toInteger(currentState.day);
-    seal.replyToSender(ctx, msg, `第 ${worldday} 天结束，世界正在根据昨日的种子变更，演化至第 ${worldday + 1} 天...`);
+    seal.replyToSender(ctx, msg, `第 ${worldday} 天结束，世界${seedChangeDesc}，演化至第 ${worldday + 1} 天...`);
 
     const {nextState, newEvent} = await processDay(msg, currentState);
     seal.replyToSender(ctx, msg, `【第 ${nextState.day} 天】\n世界的历史变动：\n${newEvent.event_name}\n${newEvent.core_event}`);
@@ -53,6 +63,7 @@ export async function handleToday(ctx: seal.MsgContext, msg: seal.Message) {
 
 export async function handleSeed(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
     const currentState = getWorldState(msg);
+    const lastChange = currentState?.pending_seed_change;
     if (!currentState) {
         seal.replyToSender(ctx, msg, '当前没有世界。');
         return;
@@ -70,7 +81,7 @@ export async function handleSeed(ctx: seal.MsgContext, msg: seal.Message, cmdArg
     if (seedOp === 'add' && currentState.seeds.length >= maxSeeds) {
             seal.replyToSender(ctx, msg, `种子数量已达上限（${maxSeeds}个），无法添加。`);
             return;
-    } else if (seedWord.length > 5) {
+    } else if (seedWord.length > 20) {
         seal.replyToSender(ctx, msg, '种子词长度过长，无法提交变更。');
         return;
     } else if (seedOp === 'add' && currentState.seeds.includes(seedWord)) {
@@ -87,7 +98,11 @@ export async function handleSeed(ctx: seal.MsgContext, msg: seal.Message, cmdArg
     };
     saveWorldState(msg, currentState);
 
-    seal.replyToSender(ctx, msg, `种子变更已提交/覆盖：【${seedOp === 'add' ? '添加' : '移除'}】“${seedWord}”。此变更将在明天的世界演化中生效。`);
+    if (lastChange.operation !== 'none') {
+      seal.replyToSender(ctx, msg, `每日仅能进行一次种子变更，已覆盖变更：【${seedOp === 'add' ? '添加' : '移除'}】“${seedWord}”。此变更将在明天的世界演化中生效。`);
+    } else {
+      seal.replyToSender(ctx, msg, `种子变更已提交：【${seedOp === 'add' ? '添加' : '移除'}】“${seedWord}”。此变更将在明天的世界演化中生效。`);
+    }
     saveTimer(msg, 'reset', '0');
 }
 
@@ -107,6 +122,7 @@ export async function handleStatus(ctx: seal.MsgContext, msg: seal.Message) {
 矛盾: ${setting.conflicts}
 科技: ${setting.tech}
 当前种子: [${state.seeds.join(', ')}]
+变更队列: ${state.pending_seed_change.operation === "none" ? '无' : `${state.pending_seed_change.operation === 'add' ? '添加' : '移除'} “${state.pending_seed_change.seed}”`}
 `.trim();
     seal.replyToSender(ctx, msg, replyText);
     saveTimer(msg, 'reset', '0');

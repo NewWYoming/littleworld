@@ -1,6 +1,6 @@
 {
   "name": "little-world",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "一个AI驱动的世界演化插件.",
   "main": "build/index.js",
   "typings": "build/index.d.ts",
