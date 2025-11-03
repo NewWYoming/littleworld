@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         微型世界模拟器
 // @author       NewWYoming
-// @version      0.3.2
+// @version      0.3.3
 // @description  一个AI驱动的世界演化插件.
 // @license      MIT
 // @homepageURL  https://github.com/NewWYoming/littleworld

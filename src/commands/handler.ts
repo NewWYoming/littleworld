@@ -46,10 +46,8 @@ export async function handleToday(ctx: seal.MsgContext, msg: seal.Message) {
     const seedChange = currentState.pending_seed_change;
     let seedChangeDesc = "昨日无种子变更";
     if (seedChange.operation === 'add') {
-        currentState.seeds.push(seedChange.seed);
         seedChangeDesc = `正在根据昨日添加的种子“${seedChange.seed}”`;
     } else if (seedChange.operation === 'remove') {
-        currentState.seeds = currentState.seeds.filter(s => s !== seedChange.seed);
         seedChangeDesc = `正在根据昨日移除的种子“${seedChange.seed}”`;
     }
 

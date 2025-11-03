@@ -8,7 +8,7 @@ function main() {
 	// 1. 扩展初始化
 	let ext = seal.ext.find('little-world');
 	if (!ext) {
-		ext = seal.ext.new('little-world', 'NewWYoming', '0.3.2');
+		ext = seal.ext.new('little-world', 'NewWYoming', '0.3.3');
 		seal.ext.register(ext);
 	}
 
@@ -31,12 +31,12 @@ function main() {
 	.world status - 查看世界设定
 	.world history [页码] - 查看历史书页
 	.world reset - 删除世界
-	.w 为.world的缩写。`;
+	.lw 为指令缩写。`;
 	cmdWorld.solve = (ctx, msg, cmdArgs) => {
 		return dispatcher(ctx, msg, cmdArgs);
 	};
 	ext.cmdMap['world'] = cmdWorld;
-	ext.cmdMap['w'] = cmdWorld; // Alias
+	ext.cmdMap['lw'] = cmdWorld; // Alias
 }
 
 main();

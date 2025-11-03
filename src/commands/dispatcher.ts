@@ -2,6 +2,7 @@ import { handleCreate, handleToday, handleSeed, handleStatus, handleHistory, han
 
 export function dispatcher(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
     const subCommand = cmdArgs.getArgN(1);
+    let rtresult = seal.ext.newCmdExecuteResult(false);
 
     (async () => {
         try {
@@ -25,21 +26,14 @@ export function dispatcher(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: sea
                     await handleReset(ctx, msg);
                     break;
                 case 'help':{
-                    const ret = seal.ext.newCmdExecuteResult(true);
-                    ret.showHelp = true;
-                    seal.replyToSender(ctx, msg, `微型世界模拟器指令:
-	.world create <种子1> <种子2> <种子3>  - 创建世界
-	.world today - 每日推进一天
-	.world seed <add/remove <种子>> - 每日提交种子变更
-	.world status - 查看世界设定
-	.world history [页码] - 查看历史书页
-	.world reset - 删除世界
-	.w 为.world的缩写。`);
-                    return ret;
+                    rtresult = seal.ext.newCmdExecuteResult(true);
+                    rtresult.showHelp = true;
+                    return rtresult;
                 }
                 default: {
                     seal.replyToSender(ctx, msg, `微型世界模拟器插件，请使用create/today/seed/status/history/reset参数。输入 .world help 查看帮助。`);
-                    return seal.ext.newCmdExecuteResult(false);
+                    rtresult = seal.ext.newCmdExecuteResult(false);
+                    return rtresult;
                 }
             }
         } catch (e: any) {
@@ -47,5 +41,5 @@ export function dispatcher(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: sea
         }
     })();
 
-    return seal.ext.newCmdExecuteResult(true);
+    return rtresult;
 }
