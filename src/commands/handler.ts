@@ -4,7 +4,23 @@ import { gettime } from "../utils";
 import { getTimer, getWorldState, saveTimer, saveWorldState } from "../store";
 import { createWorld, processDay } from "../core/worldManager";
 
+function transOldData(msg: seal.Message) {
+    const oldState = getWorldState(msg, true);
+    if (oldState) {
+        saveWorldState(msg, oldState, false);
+        console.log(`已为用户 ${msg.sender.userId} 转移旧数据到新存储键。`);
+        saveWorldState(msg, null, true); // 清除旧数据
+    }
+    const oldCreateTimer = getTimer(msg, 'create', true);
+    if (oldCreateTimer) {
+        saveTimer(msg, 'create', oldCreateTimer.Times, false);
+        console.log(`已为用户 ${msg.sender.userId} 转移旧创建计时器到新存储键。`);
+        saveTimer(msg, 'create', null, true); // 清除旧数据
+    }
+}
+
 export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    transOldData(msg);
     const seeds = [cmdArgs.getArgN(2), cmdArgs.getArgN(3), cmdArgs.getArgN(4)];
     const createtimer: Timer | null = getTimer(msg, 'create');
     const timenow = gettime(msg.time);
@@ -34,6 +50,7 @@ export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdA
 }
 
 export async function handleToday(ctx: seal.MsgContext, msg: seal.Message) {
+    transOldData(msg);
     const currentState = getWorldState(msg);
     if (!currentState) {
         seal.replyToSender(ctx, msg, '当前没有世界。请使用 .world create 创建一个。');
@@ -64,6 +81,7 @@ export async function handleToday(ctx: seal.MsgContext, msg: seal.Message) {
 }
 
 export async function handleSeed(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    transOldData(msg);
     const currentState = getWorldState(msg);
     const lastChange = currentState?.pending_seed_change;
     if (!currentState) {
@@ -109,6 +127,7 @@ export async function handleSeed(ctx: seal.MsgContext, msg: seal.Message, cmdArg
 }
 
 export async function handleStatus(ctx: seal.MsgContext, msg: seal.Message) {
+    transOldData(msg);
     const state = getWorldState(msg);
     if (!state) {
         seal.replyToSender(ctx, msg, '当前没有世界。');
@@ -131,6 +150,7 @@ export async function handleStatus(ctx: seal.MsgContext, msg: seal.Message) {
 }
 
 export async function handleHistory(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    transOldData(msg);
     const page = parseInt(cmdArgs.getArgN(2), 10) || 1;
     const pageSize = seal.ext.getIntConfig(ext, "historyPageSize");
     const state = getWorldState(msg);
@@ -155,6 +175,7 @@ export async function handleHistory(ctx: seal.MsgContext, msg: seal.Message, cmd
 }
 
 export async function handleReset(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
+    transOldData(msg);
     const resettimer: Timer | null = getTimer(msg, 'reset');
     const timenow = gettime(msg.time);
     const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
