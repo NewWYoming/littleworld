@@ -9,6 +9,10 @@ export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdA
     const createtimer: Timer | null = getTimer(msg, 'create');
     const timenow = gettime(msg.time);
     const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
+    if (getWorldState(msg)) {
+        seal.replyToSender(ctx, msg, '当前已有世界存在，无法创建新世界。请先使用 .world reset (force) 删除现有世界。');
+        return;
+    }
     if (createtimer && createtimer.Date === today && toInteger(createtimer.Times) >= 3) {
         seal.replyToSender(ctx, msg, '今日创建小世界次数过多，请明天再试。');
         return;
@@ -150,10 +154,17 @@ export async function handleHistory(ctx: seal.MsgContext, msg: seal.Message, cmd
     saveTimer(msg, 'reset', '0');
 }
 
-export async function handleReset(ctx: seal.MsgContext, msg: seal.Message) {
+export async function handleReset(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: seal.CmdArgs) {
     const resettimer: Timer | null = getTimer(msg, 'reset');
     const timenow = gettime(msg.time);
     const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
+    const forceflag = cmdArgs.getArgN(2);
+    if (forceflag === 'f' || forceflag === 'force') {
+        saveWorldState(msg, null);
+        seal.replyToSender(ctx, msg, '当前世界已被强制重置。');
+        saveTimer(msg, 'reset', '0');
+        return;
+    }
     if (resettimer && resettimer.Date === today && toInteger(resettimer.Times) >= 1) {
       saveWorldState(msg, null);
       seal.replyToSender(ctx, msg, '二次确认成功，当前世界已被重置。');

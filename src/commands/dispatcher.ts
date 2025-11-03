@@ -23,7 +23,7 @@ export function dispatcher(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: sea
                     await handleHistory(ctx, msg, cmdArgs);
                     break;
                 case 'reset':
-                    await handleReset(ctx, msg);
+                    await handleReset(ctx, msg, cmdArgs);
                     break;
                 case 'help':{
                     rtresult = seal.ext.newCmdExecuteResult(true);

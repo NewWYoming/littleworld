@@ -8,7 +8,7 @@ function main() {
 	// 1. 扩展初始化
 	let ext = seal.ext.find('little-world');
 	if (!ext) {
-		ext = seal.ext.new('little-world', 'NewWYoming', '0.3.3');
+		ext = seal.ext.new('little-world', 'NewWYoming', '0.3.4');
 		seal.ext.register(ext);
 	}
 
@@ -30,7 +30,7 @@ function main() {
 	.world seed <add/remove <种子>> - 每日提交种子变更
 	.world status - 查看世界设定
 	.world history [页码] - 查看历史书页
-	.world reset - 删除世界
+	.world reset (force|f) - 删除世界(跳过确认)
 	.lw 为指令缩写。`;
 	cmdWorld.solve = (ctx, msg, cmdArgs) => {
 		return dispatcher(ctx, msg, cmdArgs);
