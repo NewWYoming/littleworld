@@ -25,18 +25,16 @@ function main() {
 	const cmdWorld = seal.ext.newCmdItemInfo();
 	cmdWorld.name = 'world';
 	cmdWorld.help = `微型世界模拟器指令:
-	.world create <种子1> <种子2> <种子3>  - 创建世界
-	.world today - 每日推进一天
-	.world seed <add/remove <种子>> - 每日提交种子变更
-	.world status - 查看世界设定
-	.world history [页码] - 查看历史书页
-	.world reset (force|f) - 删除世界(跳过确认)
-	.lw 为指令缩写。`;
+	.lw create <种子1> <种子2> <种子3>  - 创建世界
+	.lw today - 每日推进一天
+	.lw seed <add/remove <种子>> - 每日提交种子变更
+	.lw status - 查看世界设定
+	.lw history [页码] - 查看历史书页
+	.lw reset (force|f) - 删除世界(跳过确认)`;
 	cmdWorld.solve = (ctx, msg, cmdArgs) => {
 		return dispatcher(ctx, msg, cmdArgs);
 	};
-	ext.cmdMap['world'] = cmdWorld;
-	ext.cmdMap['lw'] = cmdWorld; // Alias
+	ext.cmdMap['lw'] = cmdWorld;
 }
 
 main();

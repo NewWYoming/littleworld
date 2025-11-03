@@ -26,7 +26,7 @@ export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdA
     const timenow = gettime(msg.time);
     const today = `${timenow.getFullYear()}-${timenow.getMonth() + 1}-${timenow.getDate()}`;
     if (getWorldState(msg)) {
-        seal.replyToSender(ctx, msg, '当前已有世界存在，无法创建新世界。请先使用 .world reset (force) 删除现有世界。');
+        seal.replyToSender(ctx, msg, '当前已有世界存在，无法创建新世界。请先使用 .lw reset (force) 删除现有世界。');
         return;
     }
     if (createtimer && createtimer.Date === today && toInteger(createtimer.Times) >= 3) {
@@ -44,7 +44,7 @@ export async function handleCreate(ctx: seal.MsgContext, msg: seal.Message, cmdA
 
     seal.replyToSender(ctx, msg, '正在基于种子生成世界，请稍候...');
     const worldSetting = await createWorld(msg, seeds);
-    seal.replyToSender(ctx, msg, `世界【${worldSetting.world_name}】已成功创建！\n使用 .world status 查看详情。`);
+    seal.replyToSender(ctx, msg, `世界【${worldSetting.world_name}】已成功创建！\n使用 .lw status 查看详情。`);
     saveTimer(msg, 'create', (createtimer ? (toInteger(createtimer.Times) + 1).toString() : '1'));
     saveTimer(msg, 'reset', '0');
 }
@@ -53,7 +53,7 @@ export async function handleToday(ctx: seal.MsgContext, msg: seal.Message) {
     transOldData(msg);
     const currentState = getWorldState(msg);
     if (!currentState) {
-        seal.replyToSender(ctx, msg, '当前没有世界。请使用 .world create 创建一个。');
+        seal.replyToSender(ctx, msg, '当前没有世界。请使用 .lw create 创建一个。');
         return;
     }
 
@@ -191,7 +191,7 @@ export async function handleReset(ctx: seal.MsgContext, msg: seal.Message, cmdAr
       seal.replyToSender(ctx, msg, '二次确认成功，当前世界已被重置。');
       saveTimer(msg, 'reset', '0');
     } else {
-      seal.replyToSender(ctx, msg, '二次确认：请确认是否删除当前世界的所有数据。\n如果确认，请使用 .world reset 再次执行。');
+      seal.replyToSender(ctx, msg, '二次确认：请确认是否删除当前世界的所有数据。\n如果确认，请使用 .lw reset 再次执行。');
       saveTimer(msg, 'reset', '1');
     }
 }

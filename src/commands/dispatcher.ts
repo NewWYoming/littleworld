@@ -31,7 +31,7 @@ export function dispatcher(ctx: seal.MsgContext, msg: seal.Message, cmdArgs: sea
                     return rtresult;
                 }
                 default: {
-                    seal.replyToSender(ctx, msg, `微型世界模拟器插件，请使用create/today/seed/status/history/reset参数。输入 .world help 查看帮助。`);
+                    seal.replyToSender(ctx, msg, `微型世界模拟器插件，请使用create/today/seed/status/history/reset参数。输入 .lw help 查看帮助。`);
                     rtresult = seal.ext.newCmdExecuteResult(false);
                     return rtresult;
                 }
